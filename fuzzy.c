@@ -13,28 +13,33 @@
 //Estrutura para armazenar uma regra fuzzy
 typedef struct {
 	int type;
+	float min;
+	float max;
 	float first;
 	float last;
 	float* coefs;
+	float GPA;
+	float area;
+	float centroide;
 }fuzzyRule;
 
 //Função que encontra os coeficientes da reta de regressão linear
-void LinearRegression(int _npoints, double* _xvalues, double* _yvalues, double* _a, double* _b)
+void LinearRegression(int _npoints, float* _xvalues, float* _yvalues, float* _a, float* _b)
 {
-	double a=0;
-	double b=0;
+	float a=0;
+	float b=0;
 
-	double ysum = 0;
-	double xsum = 0;
+	float ysum = 0;
+	float xsum = 0;
 
-	double sumXY = 0;
-	double sumXsq = 0;
+	float sumXY = 0;
+	float sumXsq = 0;
 
-	double factor = 0;
-	double sumYl = 0;
-	double sumXl = 0;
-	double subY = 0;
-	double subX = 0;
+	float factor = 0;
+	float sumYl = 0;
+	float sumXl = 0;
+	float subY = 0;
+	float subX = 0;
 
 	int i=0;
 	for(i=0; i<_npoints; i++)
@@ -63,60 +68,178 @@ void LinearRegression(int _npoints, double* _xvalues, double* _yvalues, double* 
 	*_b = b;
 }
 
-//Fuzzyficação
-//Consiste em obter os valores mínimos e máximos que constituem a regra Fuzzy
-//e obter os valores dos coeficientes das retas de regressão
-//A regra fuzzy pode ser de três tipos: Crescente, Decrescente, Triangular
-double* Fuzzyfication(double _min, double _max, int _ruletype)
+//Função que calcula os coeficientes das retas que compõem a regra fuzzy
+int getFuzzyCoefs(fuzzyRule* _aux)
 {
-	//Crescente
-	if(_ruletype == 1)
+	float a=0,b=0;
+	float xvals[2] = {_aux->first,_aux->last};
+	float yvals[2];
+
+	if(_aux->type == 3)
 	{
-		double* resp = (double*)malloc(sizeof(double)*2);
-		double auxa=0,auxb=0;
-		double xvals[2] = {_min,_max};
-		double yvals[2] = {0,1};
-		LinearRegression(2,xvals,yvals,&auxa,&auxb);
-		resp[0] = auxa;
-		resp[1] = auxb;
-		return resp;
+		yvals[0] = 0;
+		yvals[1] = 1;
+		LinearRegression(2,xvals,yvals,&a,&b);
+		_aux->coefs = (float*)malloc(sizeof(float)*2);
+		if(_aux->coefs == NULL)
+			return 0;
+
+		_aux->coefs[0] = a;
+		_aux->coefs[1] = b;
 	}
-	//Decrescente
-	else if(_ruletype == 2)
+	else if(_aux->type == 1)
 	{
-		double* resp = (double*)malloc(sizeof(double)*2);
-		double auxa=0,auxb=0;
-		double xvals[2] = {_min,_max};
-		double yvals[2] = {1,0};
-		LinearRegression(2,xvals,yvals,&auxa,&auxb);
-		resp[0] = auxa;
-		resp[1] = auxb;
-		return resp;
+		yvals[0] = 1;
+		yvals[1] = 0;
+		LinearRegression(2,xvals,yvals,&a,&b);
+		_aux->coefs = (float*)malloc(sizeof(float)*2);
+		if(_aux->coefs == NULL)
+			return 0;
+
+		_aux->coefs[0] = a;
+		_aux->coefs[1] = b;
 	}
-	//Triangular
-	else
+	else if(_aux->type == 2)
 	{
-		double* resp = (double*)malloc(sizeof(double)*4);
-		double meanv = (_min+_max)/2;
-		double auxa=0,auxb=0;
-		double xvals[2] = {_min,meanv};
-		double yvals[2] = {0,1};
-		LinearRegression(2,xvals,yvals,&auxa,&auxb);
-		resp[0] = auxa;
-		resp[1] = auxb;
-		xvals[0] = meanv; xvals[1] = _max;
+		_aux->coefs = (float*)malloc(sizeof(float)*4);
+		if(_aux->coefs == NULL)
+			return 0;
+		float mean = (_aux->first + _aux->last)/2.0;
+
+		xvals[0] = _aux->first; xvals[1] = mean;
+		yvals[0] = 0; yvals[1] = 1;
+		LinearRegression(2,xvals,yvals,&a,&b);
+		_aux->coefs[0] = a;
+		_aux->coefs[1] = b;
+
+		xvals[0] = mean; xvals[1] = _aux->last;
 		yvals[0] = 1; yvals[1] = 0;
-		LinearRegression(2,xvals,yvals,&auxa,&auxb);
-		resp[2] = auxa;
-		resp[3] = auxb;
-		return resp;
+		LinearRegression(2,xvals,yvals,&a,&b);
+		_aux->coefs[2] = a;
+		_aux->coefs[3] = b;
+
+	}
+
+	return 1;
+}
+
+void getGPA(fuzzyRule* _aux, int _valor)
+{
+	if(_aux->type == 1)
+	{
+		if(_valor < _aux->first)
+		{
+			_aux->GPA = 1;
+		}
+		else if(_valor >= _aux->last)
+		{
+			_aux->GPA = 0;
+		}
+		else
+		{
+			_aux->GPA = (_aux->coefs[0]*_valor) + _aux->coefs[1];
+		}
+	}
+	else if(_aux->type == 2)
+	{
+		float meanval = (_aux->first + _aux->last)/2.0;
+		if(_valor <= meanval)
+		{
+			_aux->GPA = (_aux->coefs[0]*_valor) + _aux->coefs[1];
+		}
+		else
+		{
+			_aux->GPA = (_aux->coefs[2]*_valor) + _aux->coefs[3];
+		}
+	}
+	else if(_aux->type == 3)
+	{
+		if(_valor <= _aux->first)
+		{
+			_aux->GPA = 0;
+		}
+		else if(_valor > _aux->last)
+		{
+			_aux->GPA = 1;
+		}
+		else
+		{
+			_aux->GPA = (_aux->coefs[0]*_valor) + _aux->coefs[1];
+		}
 	}
 }
 
+void getArea(fuzzyRule* _aux, int _valor)
+{
+	if(_aux->type == 1)
+	{
+		if(_aux->GPA == 1)
+		{
+			_aux->area = ((_aux->first-_aux->min) + (_aux->last-_aux->min))/2.0;
+		}
+		else
+		{
+			_aux->area = (((_valor-_aux->min) + (_aux->last-_aux->min))*_aux->GPA)/2.0;
+		}
+	}
+	else if(_aux->type == 2)
+	{
+		float meanval = (_aux->first + _aux->last)/2.0;
+		_aux->area = (((2*(abs(meanval-_valor))) + (_aux->last-_aux->first))*_aux->GPA)/2.0;
+	}
+	else if(_aux->type == 3)
+	{
+		if(_aux->GPA == 1)
+		{			
+			_aux->area = (((_aux->max - _aux->last) + (_aux->max - _aux->first)) * _aux->GPA)/2.0;
+		}
+		else
+		{
+			_aux->area = (((_aux->max - _valor) + (_aux->max - _aux->first)) * _aux->GPA)/2.0;
+		}
+	}
+}
+
+void getCentroide(fuzzyRule* _aux, int _valor)
+{
+
+}
+
+
+int Fuzzification(fuzzyRule* _aux, int _valor)
+{
+	getFuzzyCoefs(_aux);
+	getGPA(_aux,_valor);
+	getArea(_aux,_valor);
+	getCentroide(_aux,_valor);
+	return 1;
+}
+
+
 int main()
 {
+	//Regra positiva
 	fuzzyRule a;
-	a.type = 1;
-	printf("Tipo da regra: %d\n",a.type);
+	a.type = 3;
+	a.first = 1023.5;
+	a.last = 1194;
+	a.min = 0;
+	a.max = 2047;
+	int r = getFuzzyCoefs(&a);
+	//printf("Coefs: %f , %f\n",a.coefs[2],a.coefs[3]);
+
+	fuzzyRule* teta = (fuzzyRule*)malloc(sizeof(fuzzyRule)*3);
+	teta[0] = a;
+
+	float v = 1195;
+	Fuzzification(&teta[0],v);
+
+	printf("r: %d\n",r);
+	printf("Tipo da regra: %d\n",teta[0].type);
+	printf("Coefs: %f , %f\n",teta[0].coefs[0],teta[0].coefs[1]);
+	printf("GPA: %f\n",teta[0].GPA);
+	printf("Area: %f\n",teta[0].area);
+
+
 	return 0;
 }
