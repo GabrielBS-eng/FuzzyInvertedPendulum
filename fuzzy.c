@@ -185,7 +185,9 @@ void getArea(fuzzyRule* _aux, float _valor)
 	else if(_aux->type == 2) //Triangular
 	{
 		float meanval = (_aux->first + _aux->last)/2.0;
-		_aux->area = (((2*(abs(meanval-_valor))) + (_aux->last-_aux->first))*_aux->GPA)/2.0;
+		float aux1 = 2*fabsf(meanval-_valor);
+		float aux2 = (_aux->last - _aux->first);
+		_aux->area = ((aux1+aux2)*_aux->GPA)/2.0;
 	}
 	else if(_aux->type == 3) //Crescente
 	{
@@ -285,13 +287,13 @@ int main()
 	teta[0] = a;*/
 
 	fuzzyRule* omega = (fuzzyRule*)malloc(sizeof(fuzzyRule)*3);
-	omega[0].type = 1;
+	omega[0].type = 2;
 	omega[0].min = -8;
 	omega[0].max = 8;
 	omega[0].first = -1;
-	omega[0].last = 0;
+	omega[0].last = 1;
 
-	float vw = -0.5;
+	float vw = 0.5;
 	Fuzzification(&omega[0],vw);
 
 	//float v = 800;
