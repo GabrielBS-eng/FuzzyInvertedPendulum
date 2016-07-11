@@ -10,6 +10,14 @@
 #include <stdlib.h>
 #include <math.h>
 
+//Estrutura 
+struct fuzzyRule{
+	int type;
+	float first;
+	float last;
+	float* coefs;
+};
+
 //Função que encontra os coeficientes da reta de regressão linear
 void LinearRegression(int _npoints, double* _xvalues, double* _yvalues, double* _a, double* _b)
 {
@@ -209,6 +217,16 @@ int main()
 
 	double forcaFinal = (x1[0]+x2[0]+x3[0]) / (x1[1]+x2[1]+x3[1]);
 	printf("Forca final: %lf\n", forcaFinal);
+
+
+	int np = 2;
+	double xvals[2] = {853, 1023.5};
+	double yvals[2] = {1, 0};
+	double a,b;
+	LinearRegression(np,xvals,yvals,&a,&b);
+	float x = (float)a;
+	float y = (float)b;
+	printf("%f %f\n",x,y);
 
 	return 0;
 }
