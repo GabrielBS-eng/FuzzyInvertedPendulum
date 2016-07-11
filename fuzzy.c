@@ -3,7 +3,7 @@
 	Faculty of Electrical Engineering
 	Biomedical Engineering Lab
 	Authors: Gabriel Brito
-					 Andrei Nakagawa
+		 Andrei Nakagawa
 */
 
 #include <stdio.h>
