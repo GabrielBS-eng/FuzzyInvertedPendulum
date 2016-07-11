@@ -123,7 +123,7 @@ int getFuzzyCoefs(fuzzyRule* _aux)
 	return 1;
 }
 
-void getGPA(fuzzyRule* _aux, int _valor)
+void getGPA(fuzzyRule* _aux, float _valor)
 {
 	if(_aux->type == 1)
 	{
@@ -169,9 +169,9 @@ void getGPA(fuzzyRule* _aux, int _valor)
 	}
 }
 
-void getArea(fuzzyRule* _aux, int _valor)
+void getArea(fuzzyRule* _aux, float _valor)
 {
-	if(_aux->type == 1)
+	if(_aux->type == 1) //Decrescente
 	{
 		if(_aux->GPA == 1)
 		{
@@ -182,64 +182,140 @@ void getArea(fuzzyRule* _aux, int _valor)
 			_aux->area = (((_valor-_aux->min) + (_aux->last-_aux->min))*_aux->GPA)/2.0;
 		}
 	}
-	else if(_aux->type == 2)
+	else if(_aux->type == 2) //Triangular
 	{
 		float meanval = (_aux->first + _aux->last)/2.0;
 		_aux->area = (((2*(abs(meanval-_valor))) + (_aux->last-_aux->first))*_aux->GPA)/2.0;
 	}
-	else if(_aux->type == 3)
+	else if(_aux->type == 3) //Crescente
 	{
 		if(_aux->GPA == 1)
-		{			
+		{
 			_aux->area = (((_aux->max - _aux->last) + (_aux->max - _aux->first)) * _aux->GPA)/2.0;
 		}
 		else
 		{
 			_aux->area = (((_aux->max - _valor) + (_aux->max - _aux->first)) * _aux->GPA)/2.0;
+	}
+		}
+}
+
+//Função que calcula o centróide
+void getCentroide(fuzzyRule* _aux, float _valor)
+{
+	//Decrescente
+	if(_aux->type == 1)
+	{
+		if(_aux->GPA == 1)
+		{
+			//Area Quadrado
+			float aux1 = (_aux->first - _aux->min);
+			//Centroide Quadrado
+			float aux2 = ((_aux->first - _aux->min)/2.0) + _aux->min;
+			//Area Triangulo
+			float aux3 = ((_aux->last - _aux->first)/2.0);
+			//Centroide triangulo
+			float aux4 = (((_aux->last - _aux->first)/3.0)+_aux->first);
+			//Centroide
+			_aux->centroide = ((aux1*aux2) + (aux3*aux4)) / _aux->area;
+		}
+		else
+		{
+			//Area Quadrado
+			float aux1 = (_valor - _aux->min) * _aux->GPA;
+			//Centroide Quadrado
+			float aux2 = ((_valor - _aux->min)/2.0) + _aux->min;
+			//Area triangulo
+			float aux3 = ((_aux->last - _valor) * _aux->GPA)/2.0;
+			//Centroide triangulo
+			float aux4 = ((_aux->last - _valor)/3.0) + _valor;
+			//Centroide final
+			_aux->centroide = ((aux1*aux2) + (aux3*aux4)) / _aux->area;
 		}
 	}
-}
+		else if(_aux->type == 2) //Triangular
+		{
+			float meanval = (_aux->first + _aux->last)/2.0;
+			_aux->centroide = meanval;
+		}
+		else if(_aux->type == 3) //Crescente
+		{
+			if(_aux->GPA == 1)
+			{
+				//Area do retangulo
+				float aux1 = (_aux->max - _aux->last) * ((_aux->max + _aux->last)/2.0);
+				//Area do triangulo
+				float aux2 = ((_aux->last - _aux->first)/2.0) * ((((_aux->last - _aux->first)/3.0)*2.0) + _aux->first);
+				_aux->centroide = (aux1+aux2) / _aux->area;
+			}
+			else
+			{
+				//Area do retangulo
+				float aux1 = (((_aux->max - _valor) * _aux->GPA) * (_valor + _aux->max))/2.0;
+				//Area do triangulo
+				float aux2 = ((_valor - _aux->first)*_aux->GPA)/2.0;
+				//Correcao do centroide
+				float aux3 = (((_valor - _aux->first)*2.0)/3.0) + _aux->first;
+				_aux->centroide = (aux1+(aux2*aux3)) / _aux->area;
+			}
+		}
+	}
 
-void getCentroide(fuzzyRule* _aux, int _valor)
-{
 
-}
-
-
-int Fuzzification(fuzzyRule* _aux, int _valor)
+void Fuzzification(fuzzyRule* _aux, float _valor)
 {
 	getFuzzyCoefs(_aux);
 	getGPA(_aux,_valor);
 	getArea(_aux,_valor);
 	getCentroide(_aux,_valor);
-	return 1;
 }
 
 
 int main()
 {
 	//Regra positiva
-	fuzzyRule a;
-	a.type = 3;
-	a.first = 1023.5;
-	a.last = 1194;
+	/*fuzzyRule a;
+	a.type = 1;
+	a.first = 853;
+	a.last = 1023.5;
 	a.min = 0;
 	a.max = 2047;
-	int r = getFuzzyCoefs(&a);
-	//printf("Coefs: %f , %f\n",a.coefs[2],a.coefs[3]);
 
 	fuzzyRule* teta = (fuzzyRule*)malloc(sizeof(fuzzyRule)*3);
-	teta[0] = a;
+	teta[0] = a;*/
 
-	float v = 1195;
-	Fuzzification(&teta[0],v);
+	fuzzyRule* omega = (fuzzyRule*)malloc(sizeof(fuzzyRule)*3);
+	omega[0].type = 1;
+	omega[0].min = -8;
+	omega[0].max = 8;
+	omega[0].first = -1;
+	omega[0].last = 0;
 
-	printf("r: %d\n",r);
+	float vw = -0.5;
+	Fuzzification(&omega[0],vw);
+
+	//float v = 800;
+	//Fuzzification(&teta[0],v);
+
+	printf("\n");
+
+	/*printf("Teta\n");
 	printf("Tipo da regra: %d\n",teta[0].type);
 	printf("Coefs: %f , %f\n",teta[0].coefs[0],teta[0].coefs[1]);
 	printf("GPA: %f\n",teta[0].GPA);
 	printf("Area: %f\n",teta[0].area);
+	printf("Centroide: %f\n",teta[0].centroide);
 
+	printf("\n\n\n");*/
+
+	printf("Omega\n");
+	printf("Tipo da regra: %d\n",omega[0].type);
+	printf("Coefs: %f , %f\n",omega[0].coefs[0],omega[0].coefs[1]);
+	printf("GPA: %f\n",omega[0].GPA);
+	printf("Area: %f\n",omega[0].area);
+	printf("Centroide: %f\n",omega[0].centroide);
+
+	printf("\n");
 
 	return 0;
 }
