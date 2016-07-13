@@ -1,6 +1,9 @@
 #include <stdio.h>
+#include <math.h>
 int main()
 {
-	printf("Hello World!!!\n");
+	float i = -3.555;
+	i = abs(i);
+	printf("Hello World!!!\n%f",i);
 	return 0;
 }
