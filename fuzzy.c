@@ -506,7 +506,7 @@ float Defuzzification(fuzzyRule* A6, fuzzyRule* A7, fuzzyRule* A8, fuzzyRule* A9
 
 int main()
 {
-	float v, vw, valorResposta;
+	float v=900, vw=0.5, valorResposta;
 
 	//Regra positiva
   fuzzyRule* teta = (fuzzyRule*)malloc(sizeof(fuzzyRule)*3);
@@ -528,23 +528,23 @@ int main()
 	teta[2].min = 0;
 	teta[2].max = 2047;
 
-	v = 800;
 	Fuzzification(&teta[0],v);
 	Fuzzification(&teta[1],v);
 	Fuzzification(&teta[2],v);
 
-	printf("Teta\n");
+	printf("\n");
+	printf("Teta: %f\n", v);
 	printf("Tipo da regra: %d\t",teta[0].type);
 	printf("Coefs: %f , %f\t",teta[0].coefs[0],teta[0].coefs[1]);
 	printf("GPA: %f\n",teta[0].GPA);
 
 	printf("Tipo da regra: %d\t",teta[1].type);
 	printf("Coefs: %f , %f\t",teta[1].coefs[0],teta[1].coefs[1]);
-	printf("GPA: %f\n",teta[2].GPA);
+	printf("GPA: %f\n",teta[1].GPA);
 
 	printf("Tipo da regra: %d\t",teta[2].type);
 	printf("Coefs: %f , %f\t",teta[2].coefs[0],teta[2].coefs[1]);
-	printf("GPA: %f\n",teta[0].GPA);
+	printf("GPA: %f\n",teta[2].GPA);
 
 	printf("\n\n\n");
 
@@ -567,12 +567,11 @@ int main()
 	omega[2].first = 0;
 	omega[2].last = 1;
 
-	vw = 0.5;
 	Fuzzification(&omega[0],vw);
 	Fuzzification(&omega[1],vw);
 	Fuzzification(&omega[2],vw);
 
-	printf("Omega\n");
+	printf("Omega: %f\n",vw);
 	printf("Tipo da regra: %d\t",omega[0].type);
 	printf("Coefs: %f , %f\t",omega[0].coefs[0],omega[0].coefs[1]);
 	printf("GPA: %f\n",omega[0].GPA);
@@ -623,13 +622,15 @@ int main()
 	torq[4].last = 170;
 	torq[4].GPA = 0.0;
 
-	Analysis(teta[0].GPA, teta[1].GPA, teta[2].GPA, omega[0].GPA, omega[1].GPA, omega[2].GPA, &torq.GPA[0], &torq.GPA[1], &torq.GPA[2], &torq.GPA[3], &torq.GPA[4]);
+	//O que estava errado....
+	//os GPAs dos torques estavam incorretos --> &torq.GPA[0], &torq.GPA[1]
+	//A indicação do vetor pertence a "torq" e não "GPA"
+	Analysis(teta[0].GPA, teta[1].GPA, teta[2].GPA, omega[0].GPA, omega[1].GPA, omega[2].GPA, &torq[0].GPA, &torq[1].GPA, &torq[2].GPA, &torq[3].GPA, &torq[4].GPA);
 
 	valorResposta = Defuzzification(&torq[0], &torq[1], &torq[2], &torq[3], &torq[4]);
 
-
 	printf("\n");
-	printf("Torque a ser dado: %f", valorResposta);
+	printf("Torque a ser dado: %f\n\n", valorResposta);
 
 	return 0;
 }
